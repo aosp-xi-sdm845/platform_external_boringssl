@@ -609,10 +609,13 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *method) {
   }
 
   if (!SSL_CTX_set_strict_cipher_list(ret.get(), SSL_DEFAULT_CIPHER_LIST) ||
-      // Lock the SSL_CTX to the specified version, for compatibility with
-      // legacy uses of SSL_METHOD.
+      // Lock the SSL_CTX to the specified version, for compatibility with legacy
+      // uses of SSL_METHOD, but we do not set the minimum version for
+      // |SSLv3_method|.
       !SSL_CTX_set_max_proto_version(ret.get(), method->version) ||
-      !SSL_CTX_set_min_proto_version(ret.get(), method->version)) {
+      !SSL_CTX_set_min_proto_version(ret.get(), method->version == SSL3_VERSION
+                                                    ? 0 // default
+                                                    : method->version)) {
     OPENSSL_PUT_ERROR(SSL, ERR_R_INTERNAL_ERROR);
     return nullptr;
   }
